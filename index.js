@@ -14,9 +14,8 @@ app.use(express.json());
 
 let messages = []; // Store chat messages
 
-// Socket.io connection
 io.on("connection", (socket) => {
-  console.log("A user connected: " + socket.id);
+  console.log("User connected: " + socket.id);
 
   socket.on("sendMessage", (data) => {
     const message = {
@@ -26,11 +25,11 @@ io.on("connection", (socket) => {
     };
 
     messages.push(message);
-    io.emit("receiveMessage", message); // Broadcast message to all users
+    io.emit("receiveMessage", message);
   });
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected: " + socket.id);
+    console.log("User disconnected: " + socket.id);
   });
 });
 
@@ -38,4 +37,5 @@ app.get("/", (req, res) => {
   res.send("Chat Server is Running...");
 });
 
-server.listen(3000, () => console.log("Server started on port 3000"));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
