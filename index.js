@@ -1,16 +1,41 @@
-const app = require('express')()
-const http = require('http').createServer(app)
+const express = require("express");
+const http = require("http");
+const socketIo = require("socket.io");
+const cors = require("cors");
 
-app.get('/', (req, res) => {
-   res.send("Node Server is running. Yay!!")
-})
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: { origin: "*" },
+});
 
-const socketio = require('socket.io')(http)
+app.use(cors());
+app.use(express.json());
 
-socketio.on("connection", (userSocket) => {
-    userSocket.on("send_message", (data) => {
-        userSocket.broadcast.emit("receive_message", data)
-    })
-})
+let messages = []; // Store chat messages
 
-http.listen(process.env.PORT)
+// Socket.io connection
+io.on("connection", (socket) => {
+  console.log("A user connected: " + socket.id);
+
+  socket.on("sendMessage", (data) => {
+    const message = {
+      id: Date.now(),
+      text: data.text,
+      deviceId: data.deviceId,
+    };
+
+    messages.push(message);
+    io.emit("receiveMessage", message); // Broadcast message to all users
+  });
+
+  socket.on("disconnect", () => {
+    console.log("A user disconnected: " + socket.id);
+  });
+});
+
+app.get("/", (req, res) => {
+  res.send("Chat Server is Running...");
+});
+
+server.listen(3000, () => console.log("Server started on port 3000"));
